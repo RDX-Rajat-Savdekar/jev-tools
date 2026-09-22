@@ -1,0 +1,367 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0f1412;
+  --bg-elevated: #171e1a;
+  --bg-panel: #1c2620;
+  --ink: #e8f0ea;
+  --muted: #8fa396;
+  --line: #2a3830;
+  --accent: #c8f135;
+  --accent-ink: #12180f;
+  --danger: #ff6b4a;
+  --warn: #f0c35a;
+  --ok: #5ddea0;
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #1f3324 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #243028 0%, transparent 50%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+body {
+  letter-spacing: 0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.console {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.5rem;
+}
+
+h2,
+h3 {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  color: var(--muted);
+  max-width: 36rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+}
+
+.nav a {
+  opacity: 0.75;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 0.15rem;
+}
+
+.nav a:hover {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.metric {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  padding: 0.9rem 1rem;
+}
+
+.metric-label {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.metric-value {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.95rem;
+}
+
+.metric-value.accent {
+  color: var(--accent);
+  font-size: 1.15rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+}
+
+.mode-toggle button,
+.controls > button,
+.controls select,
+.action-card button {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.65rem 0.9rem;
+  cursor: pointer;
+}
+
+.mode-toggle button {
+  border: 0;
+}
+
+.mode-toggle button.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.controls select {
+  background: var(--bg-elevated);
+  min-width: 16rem;
+}
+
+button.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+button.small {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.transcript-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.transcript-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.transcript {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  line-height: 1.35;
+  margin: 0;
+  min-height: 2.6em;
+}
+
+.transcript.live {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.25rem;
+}
+
+.card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  padding: 1rem;
+}
+
+.action-card.review {
+  border-color: var(--warn);
+}
+
+.action-card.rolled {
+  opacity: 0.55;
+  border-color: var(--danger);
+}
+
+.action-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.badge {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.badge.muted {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.badge.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.mono,
+.pre {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+}
+
+.pre {
+  white-space: pre-wrap;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 0.75rem;
+}
+
+.meta,
+.empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.error-banner {
+  background: color-mix(in oklab, var(--danger) 18%, transparent);
+  border: 1px solid var(--danger);
+  color: #ffd2c7;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.block-interstitial {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  background: color-mix(in oklab, var(--danger) 16%, var(--bg-elevated));
+  border: 1px solid var(--danger);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  animation: slideIn 280ms ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 800px) {
+  .metrics,
+  .panels,
+  .console-header {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+}
