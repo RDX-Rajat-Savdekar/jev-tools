@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Mono, Fraunces } from "next/font/google";
+import { Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const display = Fraunces({
-  variable: "--font-display",
+const sans = Instrument_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
-});
-
-const body = Space_Grotesk({
-  variable: "--font-body",
-  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 const mono = IBM_Plex_Mono({
@@ -19,9 +15,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Jev Voice Command Console",
+  title: "Jev — Voice Command Console",
   description:
-    "JevStream speculative voice actions, JevBench calibration, and JevAudit ledger in one demo.",
+    "Speculative voice intent, calibrated thresholds, append-only audit.",
 };
 
 export default function RootLayout({
@@ -31,9 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} ${mono.variable}`}>
-        {children}
-      </body>
+      <body className={`${sans.variable} ${mono.variable}`}>{children}</body>
     </html>
   );
 }
