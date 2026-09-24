@@ -42,3 +42,8 @@ yarn-error.log*
 next-env.d.ts
 data/*
 !data/bench-report.json
+
+# recorded demo masters (keep local)
+/output/
+*.mp4
+*.webm
