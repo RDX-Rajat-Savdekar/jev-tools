@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AmbientField } from "./AmbientField";
+import { ActivityTicker } from "./ActivityTicker";
 
 const LINKS = [
   { href: "/", label: "console" },
@@ -19,9 +22,27 @@ export function AppShell({
   meta?: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [clock, setClock] = useState("--:--:--");
+
+  useEffect(() => {
+    const tick = () => {
+      setClock(
+        new Date().toLocaleTimeString("en-GB", {
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="shell">
+      <AmbientField />
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark">jev</span>
@@ -39,10 +60,12 @@ export function AppShell({
           ))}
         </nav>
         <div className="topbar-meta">
+          <ActivityTicker live={live} />
           <span>
             <i className={`dot-live ${live ? "on" : ""}`} />{" "}
             {live ? "live" : "idle"}
           </span>
+          <span className="clock-chip">{clock}</span>
           {meta}
         </div>
       </header>

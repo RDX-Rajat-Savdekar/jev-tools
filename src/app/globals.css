@@ -61,6 +61,8 @@ button:disabled {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr;
+  position: relative;
+  isolation: isolate;
 }
 
 .topbar {
@@ -657,17 +659,16 @@ button:disabled {
   margin-bottom: 0.25rem;
 }
 
-.stat strong {
+.stat strong,
+.stat .stat-num,
+.hud-item .stat-num {
   font-family: var(--font-mono), monospace;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-.stat strong.ember {
-  color: var(--ember);
-}
-
-.stat strong.mint {
+.stat .stat-num.mint,
+.hud-item .stat-num.mint {
   color: var(--mint);
 }
 
@@ -685,6 +686,319 @@ button:disabled {
   font-size: 0.78rem;
   white-space: pre-wrap;
   color: var(--muted);
+}
+
+/* —— motion surfaces —— */
+.ambient {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.shell > *:not(.ambient) {
+  position: relative;
+  z-index: 1;
+}
+
+.ambient-grid {
+  position: absolute;
+  inset: -40px;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--line) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--line) 55%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.28;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(48px);
+  opacity: 0.35;
+}
+
+.ambient-orb.orb-a {
+  width: 280px;
+  height: 280px;
+  top: -40px;
+  left: 10%;
+  background: color-mix(in oklab, var(--mint) 35%, transparent);
+}
+
+.ambient-orb.orb-b {
+  width: 320px;
+  height: 320px;
+  right: 5%;
+  top: 30%;
+  background: color-mix(in oklab, var(--ember) 28%, transparent);
+}
+
+.ambient-orb.orb-c {
+  width: 240px;
+  height: 240px;
+  left: 35%;
+  bottom: -20px;
+  background: color-mix(in oklab, var(--info) 22%, transparent);
+}
+
+.decision-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.pipe-step {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  opacity: 0.35;
+}
+
+.pipe-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--line) 40%, transparent);
+}
+
+.pipe-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.pipe-spark {
+  width: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--mint), transparent);
+  opacity: 0;
+}
+
+.decision-pipeline.listening .pipe-dot,
+.decision-pipeline.fired .pipe-dot {
+  background: var(--mint);
+}
+
+.decision-pipeline.fired .pipe-dot {
+  background: var(--ember);
+}
+
+.decision-pipeline.blocked .pipe-dot {
+  background: var(--danger);
+}
+
+.transcript-block {
+  position: relative;
+}
+
+.transcript-block.scanning::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  top: 2.5rem;
+  background: linear-gradient(90deg, transparent, var(--mint), transparent);
+  animation: scan 2.2s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+@keyframes scan {
+  0% {
+    top: 2.4rem;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    top: calc(100% - 1.5rem);
+    opacity: 0;
+  }
+}
+
+.confidence-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.confidence-ring svg {
+  display: block;
+}
+
+.confidence-ring .ring-bg {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 5;
+}
+
+.confidence-ring .ring-fg {
+  fill: none;
+  stroke: var(--ember);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.confidence-ring.tone-mint .ring-fg {
+  stroke: var(--mint);
+}
+
+.confidence-ring.tone-info .ring-fg {
+  stroke: var(--info);
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.ring-label strong {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ring-label span {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--quiet);
+}
+
+.hud-with-ring {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.activity-ticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  min-height: 1.2rem;
+}
+
+.ticker-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--quiet);
+}
+
+.activity-ticker.live .ticker-pulse {
+  background: var(--mint);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.55;
+  }
+}
+
+.calibration-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.cal-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 3.5rem;
+  gap: 0.75rem;
+  align-items: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+}
+
+.cal-row span {
+  color: var(--quiet);
+  text-transform: lowercase;
+}
+
+.cal-track {
+  height: 10px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cal-fill {
+  height: 100%;
+  border-radius: 999px;
+  transform: scaleX(0);
+}
+
+.cal-fill.before {
+  background: color-mix(in oklab, var(--muted) 70%, var(--line));
+}
+
+.cal-fill.after {
+  background: linear-gradient(90deg, var(--mint), color-mix(in oklab, var(--mint) 40%, var(--info)));
+}
+
+.cal-row strong.mint {
+  color: var(--mint);
+}
+
+.case-meter {
+  height: 3px;
+  background: var(--line);
+  border-radius: 999px;
+  margin-top: 0.55rem;
+  overflow: hidden;
+}
+
+.case-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--ember);
+  transform-origin: left center;
+}
+
+.ledger-stream {
+  position: relative;
+}
+
+.ledger-stream::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--mint), transparent 70%);
+  opacity: 0.5;
+}
+
+.clock-chip {
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 900px) {
@@ -713,6 +1027,10 @@ button:disabled {
   .topbar {
     flex-wrap: wrap;
   }
+
+  .hud-with-ring {
+    flex-wrap: wrap;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -721,5 +1039,9 @@ button:disabled {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .transcript-block.scanning::after {
+    display: none;
   }
 }

@@ -6,6 +6,9 @@ import { useGSAP } from "@gsap/react";
 import type { BenchReport } from "@/lib/jev-bench/optimize";
 import type { Thresholds } from "@/lib/config/thresholds";
 import { AppShell } from "./AppShell";
+import { CalibrationBars } from "./CalibrationBars";
+import { StatCounter } from "./StatCounter";
+import { ConfidenceRing } from "./ConfidenceRing";
 
 gsap.registerPlugin(useGSAP);
 
@@ -30,16 +33,31 @@ export function BenchPanel() {
       if (!root.current) return;
       gsap.fromTo(
         root.current.querySelectorAll(".anim-in"),
-        { autoAlpha: 0, y: 8 },
+        { autoAlpha: 0, y: 10 },
         {
           autoAlpha: 1,
           y: 0,
-          duration: 0.4,
-          stagger: 0.05,
+          duration: 0.45,
+          stagger: 0.06,
           ease: "power2.out",
           overwrite: true,
         },
       );
+
+      const meters = root.current.querySelectorAll<HTMLElement>(".case-meter > span");
+      if (meters.length) {
+        gsap.fromTo(
+          meters,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            duration: 0.7,
+            stagger: 0.04,
+            ease: "power2.out",
+            delay: 0.2,
+          },
+        );
+      }
     },
     { scope: root, dependencies: [report] },
   );
@@ -81,19 +99,61 @@ export function BenchPanel() {
             <div className="stat-row anim-in">
               <div className="stat">
                 <span>ece before</span>
-                <strong>{report.before.ece.toFixed(3)}</strong>
+                <StatCounter
+                  value={report.before.ece}
+                  decimals={3}
+                  className="stat-num"
+                />
               </div>
               <div className="stat">
                 <span>ece after</span>
-                <strong className="mint">{report.after.ece.toFixed(3)}</strong>
+                <StatCounter
+                  value={report.after.ece}
+                  decimals={3}
+                  className="stat-num mint"
+                />
               </div>
               <div className="stat">
                 <span>accuracy</span>
-                <strong>{(report.after.accuracy * 100).toFixed(0)}%</strong>
+                <StatCounter
+                  value={report.after.accuracy * 100}
+                  decimals={0}
+                  suffix="%"
+                  className="stat-num"
+                />
               </div>
               <div className="stat">
                 <span>sweep cost</span>
-                <strong>${report.totalCostUsd.toFixed(6)}</strong>
+                <StatCounter
+                  value={report.totalCostUsd}
+                  decimals={6}
+                  prefix="$"
+                  className="stat-num"
+                />
+              </div>
+            </div>
+
+            <div className="panel-plain anim-in">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <ConfidenceRing
+                  value={report.after.accuracy}
+                  label="accuracy"
+                  tone="mint"
+                />
+                <div style={{ flex: 1, minWidth: "220px" }}>
+                  <p className="kicker">calibration error</p>
+                  <CalibrationBars
+                    before={report.before.ece}
+                    after={report.after.ece}
+                  />
+                </div>
               </div>
             </div>
 
@@ -120,21 +180,32 @@ export function BenchPanel() {
                 {report.cases.map((c) => (
                   <li
                     key={c.id}
-                    className={`event ${c.correctIntent ? "fire" : "block"}`}
+                    className={`event hero ${c.correctIntent ? "fire" : "block"}`}
                   >
                     <div className="event-top">
                       <strong>{c.id}</strong>
-                      <span className={`chip ${c.correctIntent ? "" : "danger"}`}>
+                      <span className={`chip lg ${c.correctIntent ? "ember" : "danger"}`}>
                         {c.predictedIntent}
                       </span>
-                      <span className="chip">
-                        conf {c.intentConfidence.toFixed(2)}
-                      </span>
-                      <span className="chip">
-                        block {c.blockNoul.toFixed(2)}
-                      </span>
                     </div>
-                    <p>{c.context}</p>
+                    <p className="event-lead">{c.context}</p>
+                    <div className="event-stats">
+                      <div>
+                        <span>confidence</span>
+                        <strong>
+                          {Math.round(c.intentConfidence * 100)}%
+                        </strong>
+                      </div>
+                      <div>
+                        <span>block score</span>
+                        <strong>{c.blockNoul.toFixed(2)}</strong>
+                      </div>
+                    </div>
+                    <div className="case-meter">
+                      <span
+                        style={{ width: `${Math.round(c.intentConfidence * 100)}%` }}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>

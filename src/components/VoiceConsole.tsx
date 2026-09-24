@@ -12,6 +12,9 @@ import { useScriptedTranscript } from "@/hooks/useScriptedTranscript";
 import { JevStreamEvaluator } from "@/lib/jev-stream/evaluator";
 import { AppShell } from "./AppShell";
 import { Waveform } from "./Waveform";
+import { ConfidenceRing } from "./ConfidenceRing";
+import { DecisionPipeline } from "./DecisionPipeline";
+import { StatCounter } from "./StatCounter";
 
 gsap.registerPlugin(useGSAP);
 
@@ -380,42 +383,81 @@ export function VoiceConsole() {
                 block, or ask a human.
               </p>
             </div>
-            <div className="hud">
-              <div className="hud-item">
-                <span>acted early</span>
-                <strong ref={tSavedRef} className="ember">
-                  {formatEarly(lastTSaved)}
-                </strong>
-              </div>
-              <div className="hud-item">
-                <span>confidence</span>
-                <strong>
-                  {lastConfidence != null
-                    ? `${Math.round(lastConfidence * 100)}%`
-                    : "—"}
-                </strong>
-              </div>
-              <div className="hud-item">
-                <span>words heard</span>
-                <strong>{wordCount || "—"}</strong>
-              </div>
-              <div className="hud-item">
-                <span>decisions</span>
-                <strong>{decisionCount || "—"}</strong>
-              </div>
-              <div className="hud-item">
-                <span>session cost</span>
-                <strong>{costLabel}</strong>
-              </div>
-              <div className="hud-item">
-                <span>status</span>
-                <strong className={active ? "mint" : undefined}>{status}</strong>
+            <div className="hud-with-ring">
+              <ConfidenceRing
+                value={lastConfidence}
+                tone={
+                  waveMood === "blocked"
+                    ? "info"
+                    : waveMood === "fired"
+                      ? "ember"
+                      : "mint"
+                }
+              />
+              <div className="hud">
+                <div className="hud-item">
+                  <span>acted early</span>
+                  <strong ref={tSavedRef} className="ember">
+                    {formatEarly(lastTSaved)}
+                  </strong>
+                </div>
+                <div className="hud-item">
+                  <span>words heard</span>
+                  <strong>
+                    {wordCount ? (
+                      <StatCounter
+                        value={wordCount}
+                        decimals={0}
+                        className="stat-num"
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </strong>
+                </div>
+                <div className="hud-item">
+                  <span>decisions</span>
+                  <strong>
+                    {decisionCount ? (
+                      <StatCounter
+                        value={decisionCount}
+                        decimals={0}
+                        className="stat-num"
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </strong>
+                </div>
+                <div className="hud-item">
+                  <span>session cost</span>
+                  <strong>{costLabel}</strong>
+                </div>
+                <div className="hud-item">
+                  <span>status</span>
+                  <strong className={active ? "mint" : undefined}>{status}</strong>
+                </div>
               </div>
             </div>
           </div>
 
+          <DecisionPipeline
+            active={active}
+            phase={
+              blocked
+                ? "blocked"
+                : waveMood === "fired"
+                  ? "fired"
+                  : reviewQueue.length
+                    ? "review"
+                    : active
+                      ? "listening"
+                      : "idle"
+            }
+          />
+
           {mode === "scripted" && (
-            <p className="demo-hint anim-in">
+            <p className="demo-hint anim-in" style={{ marginTop: "0.85rem" }}>
               <strong>{utterance.label}:</strong> {utterance.blurb}
             </p>
           )}
@@ -429,7 +471,7 @@ export function VoiceConsole() {
             <Waveform active={active || waveMood !== "idle"} mood={waveMood} />
           </div>
 
-          <div className="transcript-block anim-in">
+          <div className={`transcript-block anim-in ${active ? "scanning" : ""}`}>
             <p className="kicker">transcript</p>
             <p className={`transcript ${active ? "live" : ""}`}>
               {transcript || <span className="ghost">waiting for speech</span>}
