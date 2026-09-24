@@ -796,10 +796,6 @@ button:disabled {
   background: var(--danger);
 }
 
-.transcript-block {
-  position: relative;
-}
-
 .transcript-block.scanning::after {
   content: "";
   position: absolute;
