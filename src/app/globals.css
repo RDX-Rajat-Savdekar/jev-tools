@@ -1520,3 +1520,109 @@ button:disabled {
   .audit-grid { grid-template-columns: 1fr; }
   .dials-panel { grid-column: 1; grid-row: auto; }
 }
+
+/* —— React Flow —— */
+.flow-panel {
+  margin: 0.5rem 1.5rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  padding: 0.75rem 0.85rem 0.5rem;
+}
+
+.rf-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rf-canvas {
+  height: 230px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #07090d;
+}
+
+.rf-canvas-sm {
+  height: 150px;
+}
+
+.rf-node {
+  min-width: 128px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #121821;
+  box-shadow: none;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.rf-node strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--cream);
+}
+
+.rf-node span {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  color: var(--quiet);
+}
+
+.rf-node.active {
+  border-color: color-mix(in oklab, var(--ember) 55%, var(--line));
+  background: color-mix(in oklab, var(--ember) 12%, #121821);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ember) 25%, transparent);
+}
+
+.rf-node.tone-mint.active {
+  border-color: color-mix(in oklab, var(--mint) 55%, var(--line));
+  background: color-mix(in oklab, var(--mint) 12%, #121821);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--mint) 25%, transparent);
+}
+
+.rf-node.tone-danger.active {
+  border-color: color-mix(in oklab, var(--danger) 55%, var(--line));
+  background: color-mix(in oklab, var(--danger) 12%, #121821);
+}
+
+.rf-node.tone-info.active {
+  border-color: color-mix(in oklab, var(--info) 55%, var(--line));
+  background: color-mix(in oklab, var(--info) 12%, #121821);
+}
+
+.rf-node.done {
+  border-color: color-mix(in oklab, var(--mint) 40%, var(--line));
+}
+
+.rf-handle {
+  width: 7px !important;
+  height: 7px !important;
+  background: #314056 !important;
+  border: 1px solid #8b94a3 !important;
+}
+
+.react-flow__controls {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.react-flow__controls-button {
+  background: var(--panel) !important;
+  border-bottom: 1px solid var(--line) !important;
+  fill: var(--muted) !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
+
+.rf-canvas-audit {
+  height: 220px;
+}

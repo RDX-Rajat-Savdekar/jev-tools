@@ -7,6 +7,7 @@ import type { LedgerRow } from "@/lib/jev-audit/ledger";
 import { AppShell } from "./AppShell";
 import { StatCounter } from "./StatCounter";
 import { ConfidenceRing } from "./ConfidenceRing";
+import { AuditRouteFlow } from "./AuditRouteFlow";
 
 gsap.registerPlugin(useGSAP);
 
@@ -247,8 +248,8 @@ export function AuditPanel() {
 
         <div className="audit-grid">
           <section className="dash-panel mix-panel dash-in">
-            <p className="kicker">verdict mix</p>
-            <div className="mix-bar">
+            <AuditRouteFlow verdict={current?.verdict ?? null} />
+            <div className="mix-bar" style={{ marginTop: "0.85rem" }}>
               <i className="fire" style={{ width: `${(counts.fire / total) * 100}%` }} />
               <i className="block" style={{ width: `${(counts.block / total) * 100}%` }} />
               <i className="review" style={{ width: `${(counts.review / total) * 100}%` }} />

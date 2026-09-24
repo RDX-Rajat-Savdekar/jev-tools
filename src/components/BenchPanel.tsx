@@ -7,6 +7,7 @@ import type { BenchReport } from "@/lib/jev-bench/optimize";
 import type { Thresholds } from "@/lib/config/thresholds";
 import { AppShell } from "./AppShell";
 import { StatCounter } from "./StatCounter";
+import { CalibrationFlow } from "./CalibrationFlow";
 
 gsap.registerPlugin(useGSAP);
 
@@ -293,6 +294,14 @@ export function BenchPanel() {
             </button>
           </div>
         </header>
+
+        <div className="dash-panel dash-in" style={{ paddingBottom: "0.5rem" }}>
+          <CalibrationFlow
+            phase={phase}
+            revealed={revealed}
+            total={data.cases.length}
+          />
+        </div>
 
         <div className="bench-grid">
           <section className="dash-panel ece-panel dash-in">

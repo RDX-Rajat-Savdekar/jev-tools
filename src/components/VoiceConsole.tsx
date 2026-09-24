@@ -13,7 +13,7 @@ import { JevStreamEvaluator } from "@/lib/jev-stream/evaluator";
 import { AppShell } from "./AppShell";
 import { Waveform } from "./Waveform";
 import { ConfidenceRing } from "./ConfidenceRing";
-import { DecisionPipeline } from "./DecisionPipeline";
+import { IntentFlow } from "./IntentFlow";
 import { StatCounter } from "./StatCounter";
 
 gsap.registerPlugin(useGSAP);
@@ -441,21 +441,22 @@ export function VoiceConsole() {
             </div>
           </div>
 
-          <DecisionPipeline
-            active={active}
-            phase={
-              blocked
-                ? "blocked"
-                : waveMood === "fired"
-                  ? "fired"
-                  : reviewQueue.length
-                    ? "review"
-                    : active
-                      ? "listening"
-                      : "idle"
-            }
-          />
-
+          <div className="flow-panel anim-in">
+            <IntentFlow
+              active={active}
+              phase={
+                blocked
+                  ? "blocked"
+                  : waveMood === "fired"
+                    ? "fired"
+                    : reviewQueue.length
+                      ? "review"
+                      : active
+                        ? "listening"
+                        : "idle"
+              }
+            />
+          </div>
           {mode === "scripted" && (
             <p className="demo-hint anim-in" style={{ marginTop: "0.85rem" }}>
               <strong>{utterance.label}:</strong> {utterance.blurb}
