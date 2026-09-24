@@ -78,6 +78,8 @@ export function VoiceConsole() {
   const [lastTSaved, setLastTSaved] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lastConfidence, setLastConfidence] = useState<number | null>(null);
+  const [decisionCount, setDecisionCount] = useState(0);
   const [waveMood, setWaveMood] = useState<
     "idle" | "listening" | "fired" | "blocked"
   >("idle");
@@ -111,6 +113,12 @@ export function VoiceConsole() {
             tSavedMs: null,
             speculative: true,
           };
+          setDecisionCount((n) => n + 1);
+          if ("confidence" in decision) {
+            setLastConfidence(decision.confidence);
+          } else if (decision.action === "block") {
+            setLastConfidence(decision.noul);
+          }
           if (decision.action === "block") {
             setBlocked(card);
             setWaveMood("blocked");
@@ -150,7 +158,13 @@ export function VoiceConsole() {
             setCards((prev) =>
               prev.map((c, i) => (i === 0 ? { ...c, tSavedMs } : c)),
             );
-            setStatus(`confirmed · −${tSavedMs}ms`);
+            setStatus(
+              `confirmed · ${
+                tSavedMs >= 1000
+                  ? `${(tSavedMs / 1000).toFixed(1)}s`
+                  : `${tSavedMs}ms`
+              } early`,
+            );
           } else if (finalDecision.action === "review" && !executed) {
             setReviewQueue((prev) => [
               {
@@ -217,8 +231,13 @@ export function VoiceConsole() {
   const startSession = () => {
     setError(null);
     setBlocked(null);
+    setCards([]);
+    setReviewQueue([]);
     setTranscript("");
     setLastTSaved(null);
+    setLastConfidence(null);
+    setDecisionCount(0);
+    if (tSavedRef.current) tSavedRef.current.textContent = "—";
     setBusy(true);
     setWaveMood("listening");
     setStatus("listening");
@@ -256,7 +275,7 @@ export function VoiceConsole() {
     setStatus(`approved · ${intentLabel(card.decision)}`);
   };
 
-  // Count-up t_saved
+  // Count-up "acted early" display
   useGSAP(
     () => {
       if (lastTSaved == null || !tSavedRef.current) return;
@@ -267,7 +286,11 @@ export function VoiceConsole() {
         ease: "power2.out",
         onUpdate: () => {
           if (tSavedRef.current) {
-            tSavedRef.current.textContent = `${Math.round(obj.v)}ms`;
+            const sec = obj.v / 1000;
+            tSavedRef.current.textContent =
+              sec >= 1
+                ? `${sec.toFixed(1)}s early`
+                : `${Math.round(obj.v)}ms early`;
           }
         },
       });
@@ -326,6 +349,16 @@ export function VoiceConsole() {
   }, [cards]);
 
   const costLabel = useMemo(() => `$${costUsd.toFixed(6)}`, [costUsd]);
+  const wordCount = useMemo(
+    () => (transcript.trim() ? transcript.trim().split(/\s+/).length : 0),
+    [transcript],
+  );
+
+  const formatEarly = (ms: number | null) => {
+    if (ms == null) return "—";
+    const sec = ms / 1000;
+    return sec >= 1 ? `${sec.toFixed(1)}s early` : `${ms}ms early`;
+  };
 
   return (
     <AppShell
@@ -343,20 +376,36 @@ export function VoiceConsole() {
             <div>
               <h1 className="stage-title">Live session</h1>
               <p className="stage-copy">
-                Partial transcripts route before end-of-turn. Fire, block, or
-                hold for a human.
+                The agent starts acting while you are still speaking — fire,
+                block, or ask a human.
               </p>
             </div>
             <div className="hud">
               <div className="hud-item">
-                <span>t_saved</span>
+                <span>acted early</span>
                 <strong ref={tSavedRef} className="ember">
-                  {lastTSaved != null ? `${lastTSaved}ms` : "—"}
+                  {formatEarly(lastTSaved)}
                 </strong>
               </div>
               <div className="hud-item">
-                <span>mode</span>
-                <strong>{mode}</strong>
+                <span>confidence</span>
+                <strong>
+                  {lastConfidence != null
+                    ? `${Math.round(lastConfidence * 100)}%`
+                    : "—"}
+                </strong>
+              </div>
+              <div className="hud-item">
+                <span>words heard</span>
+                <strong>{wordCount || "—"}</strong>
+              </div>
+              <div className="hud-item">
+                <span>decisions</span>
+                <strong>{decisionCount || "—"}</strong>
+              </div>
+              <div className="hud-item">
+                <span>session cost</span>
+                <strong>{costLabel}</strong>
               </div>
               <div className="hud-item">
                 <span>status</span>
@@ -364,6 +413,12 @@ export function VoiceConsole() {
               </div>
             </div>
           </div>
+
+          {mode === "scripted" && (
+            <p className="demo-hint anim-in">
+              <strong>{utterance.label}:</strong> {utterance.blurb}
+            </p>
+          )}
 
           {(error || speech.error) && (
             <p className="error-banner">{error || speech.error}</p>
@@ -427,62 +482,88 @@ export function VoiceConsole() {
         </section>
 
         <aside className="rail">
-          <div className="rail-section">
-            <h2>early actions</h2>
+          <div className="rail-section primary">
+            <h2>Early actions</h2>
+            <p className="rail-sub">
+              Fired before you finished the sentence. This is the whole demo.
+            </p>
             {cards.length === 0 && (
-              <p className="empty">Nothing speculative yet.</p>
+              <p className="empty">Play an utterance — actions show up here first.</p>
             )}
             <ul className="event-list" ref={listRef}>
               {cards.map((card) => (
                 <li
                   key={card.id}
-                  className={`event fire ${card.rolledBack ? "rolled" : ""}`}
+                  className={`event hero fire ${card.rolledBack ? "rolled" : ""}`}
                 >
                   <div className="event-top">
                     <strong>{intentLabel(card.decision)}</strong>
-                    {card.tSavedMs != null && (
-                      <span className="chip ember">−{card.tSavedMs}ms</span>
-                    )}
                     {card.speculative && !card.rolledBack && (
-                      <span className="chip">speculative</span>
+                      <span className="chip ember lg">mid-sentence</span>
                     )}
                     {card.rolledBack && (
-                      <span className="chip danger">rolled back</span>
+                      <span className="chip danger lg">rolled back</span>
                     )}
                   </div>
-                  <p>{card.partial}</p>
-                  {"confidence" in card.decision && (
-                    <p>confidence {card.decision.confidence.toFixed(2)}</p>
-                  )}
+                  <p className="event-lead">{card.partial}</p>
+                  <div className="event-stats">
+                    <div>
+                      <span>acted early</span>
+                      <strong className="ember">
+                        {formatEarly(card.tSavedMs)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>confidence</span>
+                      <strong>
+                        {"confidence" in card.decision
+                          ? `${Math.round(card.decision.confidence * 100)}%`
+                          : "—"}
+                      </strong>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
 
           <div className="rail-section" style={{ flex: 1 }}>
-            <h2>human review</h2>
+            <h2>Needs a human</h2>
+            <p className="rail-sub">
+              Low confidence — approve on camera for the LinkedIn take.
+            </p>
             {reviewQueue.length === 0 && (
               <p className="empty">Queue clear.</p>
             )}
             <ul className="event-list">
               {reviewQueue.map((card) => (
-                <li key={card.id} className="event review">
+                <li key={card.id} className="event hero review">
                   <div className="event-top">
                     <strong>{intentLabel(card.decision)}</strong>
-                    {"confidence" in card.decision && (
-                      <span className="chip">
-                        {card.decision.confidence.toFixed(2)}
-                      </span>
-                    )}
+                    <span className="chip lg">review</span>
                   </div>
-                  <p>{card.partial}</p>
-                  <div style={{ marginTop: "0.55rem" }}>
+                  <p className="event-lead">{card.partial}</p>
+                  <div className="event-stats">
+                    <div>
+                      <span>confidence</span>
+                      <strong>
+                        {"confidence" in card.decision
+                          ? `${Math.round(card.decision.confidence * 100)}%`
+                          : "—"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>action</span>
+                      <strong>hold</strong>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "0.85rem" }}>
                     <button
                       type="button"
-                      className="btn mint small"
+                      className="btn mint"
                       onClick={() => approveReview(card)}
                     >
-                      approve
+                      approve on camera
                     </button>
                   </div>
                 </li>
@@ -496,10 +577,10 @@ export function VoiceConsole() {
         <div className="block-sheet" role="alertdialog" aria-modal>
           <div className="block-panel" ref={blockRef}>
             <p className="kicker">hard block</p>
-            <h2>Command stopped mid-word</h2>
+            <h2>Stopped mid-sentence</h2>
             <p>
               {blocked.decision.action === "block"
-                ? `noul ${blocked.decision.noul.toFixed(2)} · risk ${blocked.decision.riskScore.toFixed(2)}`
+                ? `Block score ${blocked.decision.noul.toFixed(2)} · risk ${blocked.decision.riskScore.toFixed(2)}`
                 : null}
             </p>
             <p className="mono">{blocked.partial}</p>

@@ -7,12 +7,13 @@ export type ScriptedWord = {
 export type ScriptedUtterance = {
   id: string;
   label: string;
+  blurb: string;
   expectedIntent: "deploy_preview" | "destroy_data" | "cleanup_build" | "unknown";
   expectedOutcome: "fire" | "block" | "review";
   words: ScriptedWord[];
 };
 
-function wordsFrom(sentence: string, msPerWord = 320): ScriptedWord[] {
+function wordsFrom(sentence: string, msPerWord = 380): ScriptedWord[] {
   return sentence
     .trim()
     .split(/\s+/)
@@ -22,24 +23,34 @@ function wordsFrom(sentence: string, msPerWord = 320): ScriptedWord[] {
 export const DEMO_UTTERANCES: ScriptedUtterance[] = [
   {
     id: "deploy",
-    label: "Deploy preview",
+    label: "Safe deploy",
+    blurb: "Should fire mid-sentence — start the preview deploy before you finish talking.",
     expectedIntent: "deploy_preview",
     expectedOutcome: "fire",
-    words: wordsFrom("Deploy the staging branch to the preview environment"),
+    words: wordsFrom(
+      "Hey can you go ahead and deploy the latest staging branch out to the customer preview environment for the design review this afternoon",
+    ),
   },
   {
     id: "destroy",
-    label: "Destroy production",
+    label: "Dangerous wipe",
+    blurb: "Should hard-block mid-sentence — never touch production data.",
     expectedIntent: "destroy_data",
     expectedOutcome: "block",
-    words: wordsFrom("Drop the production database and clear the backups"),
+    words: wordsFrom(
+      "Please drop the entire production database right now and also clear all of the backup snapshots from the last month",
+    ),
   },
   {
     id: "cleanup",
-    label: "Ambiguous cleanup",
+    label: "Vague cleanup",
+    blurb: "Should pause for a human — intent is unclear, so don't auto-run.",
     expectedIntent: "cleanup_build",
     expectedOutcome: "review",
-    words: wordsFrom("Clean up the old build stuff", 380),
+    words: wordsFrom(
+      "Can you maybe clean up some of that old build stuff whenever you get a chance thanks",
+      420,
+    ),
   },
 ];
 
@@ -50,7 +61,7 @@ export function partialAt(utterance: ScriptedUtterance, elapsedMs: number): {
   const spoken = utterance.words.filter((w) => w.atMs <= elapsedMs);
   const isFinal =
     spoken.length === utterance.words.length &&
-    elapsedMs >= (utterance.words.at(-1)?.atMs ?? 0) + 200;
+    elapsedMs >= (utterance.words.at(-1)?.atMs ?? 0) + 280;
   return {
     text: spoken.map((w) => w.word).join(" "),
     isFinal,

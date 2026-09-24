@@ -163,12 +163,32 @@ export class JevStreamEvaluator {
     } catch (error) {
       if (controller.signal.aborted) return;
       this.events.onError?.(error, sequence);
+    } finally {
+      if (this.inFlight === controller) this.inFlight = null;
     }
   }
 
   private async finalize(finalText: string, tFinal: number): Promise<void> {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
+
+    // Give an in-flight mid-utterance eval a short window to land so t_saved
+    // is measurable even when the API is slower than the last few words.
+    if (this.inFlight && !this.executed) {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          const poll = setInterval(() => {
+            if (this.executed || !this.inFlight) {
+              clearInterval(poll);
+              resolve();
+            }
+          }, 25);
+        }),
+        new Promise<void>((resolve) => setTimeout(resolve, 1200)),
+      ]);
+    }
+
     this.inFlight?.abort();
+    this.inFlight = null;
 
     const sequence = ++this.sequence;
     const text = finalText.trim() || this.lastPartial;

@@ -147,7 +147,7 @@ button:disabled {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
   min-height: 0;
 }
 
@@ -195,8 +195,8 @@ button:disabled {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, auto);
+  gap: 0.85rem 1.4rem;
   font-family: var(--font-mono), monospace;
   font-size: 0.72rem;
 }
@@ -213,14 +213,32 @@ button:disabled {
   font-weight: 500;
   color: var(--cream);
   font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
 }
 
 .hud-item strong.ember {
   color: var(--ember);
+  font-size: 1.15rem;
 }
 
 .hud-item strong.mint {
   color: var(--mint);
+}
+
+.demo-hint {
+  margin: 0 1.5rem 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--raised) 80%, transparent);
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.demo-hint strong {
+  color: var(--cream);
+  font-weight: 500;
 }
 
 .waveform-wrap {
@@ -372,18 +390,29 @@ button:disabled {
 }
 
 .rail-section {
-  padding: 1.1rem 1.15rem;
+  padding: 1.25rem 1.2rem;
   border-bottom: 1px solid var(--line);
 }
 
+.rail-section.primary {
+  background: color-mix(in oklab, var(--ember) 5%, var(--panel));
+}
+
 .rail-section h2 {
-  margin: 0 0 0.85rem;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.68rem;
+  margin: 0 0 0.35rem;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 1.05rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  color: var(--quiet);
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--cream);
+}
+
+.rail-section .rail-sub {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .event-list {
@@ -392,12 +421,27 @@ button:disabled {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.85rem;
 }
 
 .event {
   border-left: 2px solid var(--line-strong);
   padding: 0.35rem 0 0.35rem 0.75rem;
+}
+
+.event.hero {
+  border: 1px solid color-mix(in oklab, var(--ember) 45%, var(--line));
+  border-left-width: 4px;
+  border-left-color: var(--ember);
+  background: color-mix(in oklab, var(--ember) 10%, var(--raised));
+  border-radius: var(--radius);
+  padding: 1rem 1.05rem;
+}
+
+.event.hero.review {
+  border-color: color-mix(in oklab, var(--info) 45%, var(--line));
+  border-left-color: var(--info);
+  background: color-mix(in oklab, var(--info) 10%, var(--raised));
 }
 
 .event.fire {
@@ -420,15 +464,57 @@ button:disabled {
 .event-top {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.45rem;
   align-items: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
 }
 
 .event-top strong {
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: -0.02em;
+}
+
+.event.hero .event-top strong {
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+
+.event.hero .event-lead {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+  color: var(--cream);
+  line-height: 1.4;
+}
+
+.event.hero .event-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.event.hero .event-stats div span {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--quiet);
+  margin-bottom: 0.15rem;
+}
+
+.event.hero .event-stats div strong {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.event.hero .event-stats div strong.ember {
+  color: var(--ember);
 }
 
 .chip {
@@ -449,6 +535,11 @@ button:disabled {
 .chip.danger {
   border-color: color-mix(in oklab, var(--danger) 55%, var(--line));
   color: var(--danger);
+}
+
+.chip.lg {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
 }
 
 .event p {

@@ -28,18 +28,23 @@ export function mockDecide(request: DecideRequest): DecideResponse {
     !/drop|wipe|delete|destroy/.test(lower)
   ) {
     intent = "deploy_preview";
-    confidence = wordCount >= 6 ? 0.96 : wordCount >= 4 ? 0.88 : 0.55;
+    // Long demo sentence: fire once the deploy intent is clear (~8+ words)
+    confidence = wordCount >= 10 ? 0.97 : wordCount >= 7 ? 0.91 : wordCount >= 4 ? 0.72 : 0.4;
     risk = 0.4;
     block = 0.04;
-  } else if (/drop|wipe|destroy|production database|clear the backups|delete all backups/.test(lower)) {
+  } else if (
+    /drop|wipe|destroy|production database|clear all of the backup|delete all backups|backup snapshots/.test(
+      lower,
+    )
+  ) {
     intent = "destroy_data";
-    confidence = wordCount >= 5 ? 0.97 : 0.8;
+    confidence = wordCount >= 8 ? 0.98 : wordCount >= 5 ? 0.9 : 0.7;
     risk = 2.9;
-    block = wordCount >= 5 ? 0.93 : 0.72;
-  } else if (/clean.?up|build stuff|artifacts|leftover/.test(lower)) {
+    block = wordCount >= 7 ? 0.94 : wordCount >= 5 ? 0.78 : 0.55;
+  } else if (/clean.?up|build stuff|artifacts|leftover|whenever you get a chance/.test(lower)) {
     intent = "cleanup_build";
-    // Intentionally mid-band so it lands in HITL review for the demo
-    confidence = wordCount >= 5 ? 0.62 : 0.48;
+    // Stay in review band even when the full vague sentence is in
+    confidence = wordCount >= 8 ? 0.58 : 0.45;
     risk = 0.9;
     block = 0.08;
   }
