@@ -105,6 +105,7 @@ export function AuditRouteFlow({
       <p className="kicker">routing path</p>
       <div className="rf-canvas rf-canvas-audit">
         <ReactFlow
+          key={path ?? "idle"}
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}

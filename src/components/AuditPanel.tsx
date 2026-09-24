@@ -49,8 +49,8 @@ const SCRIPT: Array<Omit<LiveEvent, "id" | "at">> = [
     status: "needs_review",
     context: "Can you maybe clean up some of that old build stuff…",
     confidence: 0.56,
-    tSavedMs: null,
-    speculative: false,
+    tSavedMs: 5000,
+    speculative: true,
     cost: 0.000011,
   },
   {
@@ -71,7 +71,36 @@ const SCRIPT: Array<Omit<LiveEvent, "id" | "at">> = [
     speculative: true,
     cost: 0.000015,
   },
+  {
+    verdict: "fire",
+    status: "auto_approved",
+    context: "Ship the design-review build to the shared preview URL now",
+    confidence: 0.89,
+    tSavedMs: 960,
+    speculative: true,
+    cost: 0.000013,
+  },
+  {
+    verdict: "review",
+    status: "needs_review",
+    context: "Could you tidy whatever is left from yesterday's failed deploy",
+    confidence: 0.48,
+    tSavedMs: 4200,
+    speculative: true,
+    cost: 0.000009,
+  },
+  {
+    verdict: "block",
+    status: "blocked",
+    context: "Force-reset the production cluster and purge the audit logs",
+    confidence: 0.97,
+    tSavedMs: 410,
+    speculative: true,
+    cost: 0.000016,
+  },
 ];
+
+const TICK_MS = 1600;
 
 function rowToEvent(row: LedgerRow): LiveEvent {
   return {
@@ -92,14 +121,26 @@ function formatEarly(ms: number | null) {
   return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s early` : `${ms}ms early`;
 }
 
+function makeSimEvent(index: number): LiveEvent {
+  const base = SCRIPT[index % SCRIPT.length];
+  return {
+    ...base,
+    id: `sim-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+    at: Date.now(),
+    synthetic: true,
+  };
+}
+
 export function AuditPanel() {
   const [real, setReal] = useState<LiveEvent[]>([]);
-  const [simIndex, setSimIndex] = useState(0);
   const [simEvents, setSimEvents] = useState<LiveEvent[]>([]);
   const [demoMode, setDemoMode] = useState(true);
   const [clock, setClock] = useState(0);
+  const [flash, setFlash] = useState(0);
+  const simIndex = useRef(0);
   const root = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
@@ -107,7 +148,7 @@ export function AuditPanel() {
       const json = await res.json();
       const rows = (json.entries as LedgerRow[] | undefined) ?? [];
       setReal(rows.map(rowToEvent));
-      if (rows.length >= 3) setDemoMode(false);
+      // Never auto-kill demo mode — real ledger can sit beside the sim feed.
     } catch {
       /* keep demo feed */
     }
@@ -115,38 +156,34 @@ export function AuditPanel() {
 
   useEffect(() => {
     void load();
-    const t = setInterval(() => void load(), 3000);
+    const t = setInterval(() => void load(), 4000);
     return () => clearInterval(t);
   }, [load]);
 
-  // Simulated realtime stream for the video when ledger is thin
+  // Push one simulated decision on a steady beat while demo mode is on.
   useEffect(() => {
     if (!demoMode) return;
-    const id = setInterval(() => {
-      setSimIndex((i) => {
-        const next = i % SCRIPT.length;
-        const base = SCRIPT[next];
-        const event: LiveEvent = {
-          ...base,
-          id: `sim-${Date.now()}-${next}`,
-          at: Date.now(),
-          synthetic: true,
-        };
-        setSimEvents((prev) => [event, ...prev].slice(0, 8));
-        return i + 1;
-      });
+
+    const push = () => {
+      const event = makeSimEvent(simIndex.current);
+      simIndex.current += 1;
+      setSimEvents((prev) => [event, ...prev].slice(0, 10));
       setClock((c) => c + 1);
-    }, 2200);
+      setFlash((f) => f + 1);
+    };
+
+    push(); // immediate first tick so the page is never idle
+    const id = setInterval(push, TICK_MS);
     return () => clearInterval(id);
   }, [demoMode]);
 
   const events = useMemo(() => {
-    const merged = demoMode ? [...simEvents, ...real] : real;
-    return merged.slice(0, 8);
+    if (demoMode) return simEvents.slice(0, 8);
+    return real.slice(0, 8);
   }, [demoMode, simEvents, real]);
 
   const current = events[0] ?? null;
-  const history = events.slice(1, 4);
+  const history = events.slice(1, 5);
 
   const counts = useMemo(() => {
     const all = events;
@@ -168,25 +205,47 @@ export function AuditPanel() {
       if (!heroRef.current || !current) return;
       gsap.fromTo(
         heroRef.current,
-        { autoAlpha: 0, y: 18, scale: 0.98 },
+        { autoAlpha: 0.35, y: 14, scale: 0.985 },
         {
           autoAlpha: 1,
           y: 0,
           scale: 1,
-          duration: 0.45,
+          duration: 0.4,
           ease: "power3.out",
           overwrite: true,
         },
       );
     },
-    { dependencies: [current?.id] },
+    { dependencies: [current?.id, flash] },
+  );
+
+  useGSAP(
+    () => {
+      if (!historyRef.current) return;
+      const cards = historyRef.current.querySelectorAll(".history-card");
+      if (!cards.length) return;
+      gsap.fromTo(
+        cards[0],
+        { autoAlpha: 0, y: -10 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.35,
+          ease: "power2.out",
+          overwrite: true,
+        },
+      );
+    },
+    { dependencies: [history[0]?.id] },
   );
 
   useGSAP(
     () => {
       if (!root.current) return;
+      const targets = root.current.querySelectorAll(".dash-in");
+      gsap.set(targets, { autoAlpha: 1, y: 0 });
       gsap.fromTo(
-        root.current.querySelectorAll(".dash-in"),
+        targets,
         { autoAlpha: 0, y: 12 },
         {
           autoAlpha: 1,
@@ -202,14 +261,16 @@ export function AuditPanel() {
   );
 
   const approve = async () => {
-    if (!current || current.synthetic) {
+    if (!current) return;
+    if (current.synthetic) {
       setSimEvents((prev) =>
         prev.map((e) =>
-          e.id === current?.id
+          e.id === current.id
             ? { ...e, status: "overridden", verdict: "fire" }
             : e,
         ),
       );
+      setFlash((f) => f + 1);
       return;
     }
     await fetch(`/api/audit/${current.id}`, {
@@ -221,7 +282,7 @@ export function AuditPanel() {
   };
 
   return (
-    <AppShell live>
+    <AppShell live={demoMode || Boolean(current)}>
       <div className="dash-page audit-dash" ref={root}>
         <header className="dash-hero dash-in">
           <div>
@@ -239,7 +300,14 @@ export function AuditPanel() {
             <button
               type="button"
               className="btn"
-              onClick={() => setDemoMode((d) => !d)}
+              onClick={() => {
+                setDemoMode((d) => !d);
+                if (!demoMode) {
+                  simIndex.current = 0;
+                  setSimEvents([]);
+                  setClock(0);
+                }
+              }}
             >
               {demoMode ? "use real ledger" : "demo stream"}
             </button>
@@ -250,9 +318,18 @@ export function AuditPanel() {
           <section className="dash-panel mix-panel dash-in">
             <AuditRouteFlow verdict={current?.verdict ?? null} />
             <div className="mix-bar" style={{ marginTop: "0.85rem" }}>
-              <i className="fire" style={{ width: `${(counts.fire / total) * 100}%` }} />
-              <i className="block" style={{ width: `${(counts.block / total) * 100}%` }} />
-              <i className="review" style={{ width: `${(counts.review / total) * 100}%` }} />
+              <i
+                className="fire"
+                style={{ width: `${(counts.fire / total) * 100}%` }}
+              />
+              <i
+                className="block"
+                style={{ width: `${(counts.block / total) * 100}%` }}
+              />
+              <i
+                className="review"
+                style={{ width: `${(counts.review / total) * 100}%` }}
+              />
             </div>
             <div className="mix-legend">
               <span>
@@ -268,11 +345,21 @@ export function AuditPanel() {
             <div className="bench-mini-stats" style={{ marginTop: "1.25rem" }}>
               <div>
                 <span>stream ticks</span>
-                <StatCounter value={clock + real.length} decimals={0} className="stat-num" />
+                <StatCounter
+                  value={clock}
+                  decimals={0}
+                  className="stat-num"
+                  duration={0.35}
+                />
               </div>
               <div>
                 <span>mid-sentence</span>
-                <StatCounter value={counts.early} decimals={0} className="stat-num ember" />
+                <StatCounter
+                  value={counts.early}
+                  decimals={0}
+                  className="stat-num ember"
+                  duration={0.35}
+                />
               </div>
               <div>
                 <span>session cost</span>
@@ -281,13 +368,17 @@ export function AuditPanel() {
                   decimals={5}
                   prefix="$"
                   className="stat-num"
+                  duration={0.35}
                 />
               </div>
             </div>
           </section>
 
           <section className="dash-panel now-panel dash-in">
-            <p className="kicker">now deciding</p>
+            <p className="kicker">
+              now deciding
+              {demoMode && <span className="live-pip" aria-hidden />}
+            </p>
             {current ? (
               <div
                 className={`now-card ${current.verdict}`}
@@ -345,7 +436,7 @@ export function AuditPanel() {
 
           <section className="dash-panel history-panel dash-in">
             <p className="kicker">just before</p>
-            <div className="history-stack">
+            <div className="history-stack" ref={historyRef}>
               {history.length === 0 && (
                 <p className="empty">Previous decisions stack here.</p>
               )}
@@ -353,7 +444,7 @@ export function AuditPanel() {
                 <div
                   key={e.id}
                   className={`history-card ${e.verdict}`}
-                  style={{ opacity: 1 - idx * 0.18 }}
+                  style={{ opacity: 1 - idx * 0.14 }}
                 >
                   <div className="event-top">
                     <strong>{e.verdict}</strong>

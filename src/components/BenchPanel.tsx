@@ -233,16 +233,17 @@ export function BenchPanel() {
     );
   }, [data]);
 
-  // Auto-play once for the camera
+  const runSweepRef = useRef(runSweep);
+  runSweepRef.current = runSweep;
+
+  // Auto-play once for the camera. Intentionally empty deps — report fetch
+  // recreates runSweep and must not cancel the scheduled sweep.
   useEffect(() => {
     if (played.current) return;
     played.current = true;
-    const t = setTimeout(() => runSweep(), 700);
-    return () => {
-      clearTimeout(t);
-      clearTimers();
-    };
-  }, [runSweep]);
+    const t = setTimeout(() => runSweepRef.current(), 900);
+    return () => clearTimeout(t);
+  }, []);
 
   useGSAP(
     () => {
